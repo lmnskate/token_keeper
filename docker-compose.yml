@@ -1,0 +1,35 @@
+version: '3'
+services:
+# Сервис авторизации
+  auth_postgres:
+    image: postgres:16-alpine
+    container_name: auth_postgres
+    env_file:
+      - .env
+    environment:
+      POSTGRES_DB: ${AUTH_POSTGRES_DBNAME}
+      POSTGRES_USER: ${AUTH_POSTGRES_USER}
+      POSTGRES_PASSWORD: ${AUTH_POSTGRES_PASSWORD}
+    ports:
+      - ${AUTH_POSTGRES_PORT}:${AUTH_POSTGRES_PORT}
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -d $$AUTH_POSTGRES_DBNAME -U $$AUTH_POSTGRES_USER"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  auth_redis:
+    image: 'redis:7.2.4'
+    container_name: auth_redis
+    env_file:
+      - .env
+    ports:
+      - ${AUTH_REDIS_PORT}:${AUTH_REDIS_PORT}
+    volumes:
+      - ./data/auth_service/redis:/usr/local/etc/redis
+    command: [ "redis-server", "/usr/local/etc/redis/redis.conf" ]
+    healthcheck:
+      test: [ "CMD", "redis-cli", "--raw", "incr", "ping" ]
+      interval: 5s
+      timeout: 5s
+      retries: 50

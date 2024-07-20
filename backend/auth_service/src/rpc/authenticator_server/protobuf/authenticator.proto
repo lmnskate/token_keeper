@@ -1,0 +1,20 @@
+syntax = "proto3";
+
+package authenticator;
+
+service Authenticator {
+  rpc CheckToken (Token) returns (TokenValidity) {}
+  rpc GetUserID (Token) returns (UserID) {}
+}
+
+message Token {
+  string token = 1;
+}
+
+message TokenValidity {
+  bool is_valid = 1;
+}
+
+message UserID {
+  string user_id = 1;
+}

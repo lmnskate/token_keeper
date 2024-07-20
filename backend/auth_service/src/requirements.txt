@@ -1,0 +1,16 @@
+sqlalchemy[asyncio]==2.0.25
+asyncpg==0.29.0
+redis==4.4.2
+alembic==1.13.1
+pydantic==2.5.2
+pydantic-settings==2.1.0
+uvicorn==0.28.0
+uvloop==0.17.0 ; sys_platform != "win32" and implementation_name == "cpython"
+orjson==3.9.10
+fastapi==0.109.0
+typer==0.9.0
+werkzeug==3.0.1
+alembic==1.13.1
+python-jose[cryptography]==3.3.0
+grpcio-tools==1.62.1
+aiohttp==3.9.0b0
