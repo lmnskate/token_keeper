@@ -1,8 +1,7 @@
 from typing import Tuple
 
-from fastapi import Response
-
 from core.globals import COOKIE_PREFIX
+from fastapi import Response
 from services.jwt import JWTService
 
 

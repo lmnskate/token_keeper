@@ -1,17 +1,16 @@
-from fastapi import (APIRouter, Depends, HTTPException, Request, Response,
-                     status)
-from fastapi.encoders import jsonable_encoder
-from sqlalchemy.ext.asyncio import AsyncSession
-
 from core.globals import COOKIE_PREFIX
 from crud.logon_history import get_auth_history
 from crud.user import check_password, get_user_id, update_user_credentials
+from fastapi import (APIRouter, Depends, HTTPException, Request, Response,
+                     status)
+from fastapi.encoders import jsonable_encoder
 from schemas.common import Paginator
 from schemas.logon_history import LogonHistoryModel
 from schemas.service_message import ServiceMessageModel
 from schemas.user import ChangePasswordModel
 from services.jwt import JWTService, get_jwt_session
 from services.postgres import get_postgres_session
+from sqlalchemy.ext.asyncio import AsyncSession
 from utils.tokens import create_tokens, set_tokens_to_cookies
 from utils.wrappers import if_token_is_valid
 

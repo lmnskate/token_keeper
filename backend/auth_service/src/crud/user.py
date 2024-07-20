@@ -1,7 +1,6 @@
+from models.models import User
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
-
-from models.models import User
 
 
 async def check_email(

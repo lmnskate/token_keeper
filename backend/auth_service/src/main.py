@@ -2,12 +2,11 @@ import sys
 from contextlib import asynccontextmanager
 
 import uvicorn
-from fastapi import FastAPI
-from fastapi.responses import ORJSONResponse
-
 from core.config import auth_api_settings, postgres_settings, redis_settings
 from dependencies import postgres, redis
-from routers import account, auth
+from fastapi import FastAPI
+from fastapi.responses import ORJSONResponse
+from routers import account, signin, signup
 from rpc.authenticator_server.server import get_authenticator_server
 from services import oauth
 
@@ -61,8 +60,12 @@ app = FastAPI(
 
 
 app.include_router(
-    router=auth.router,
-    prefix='/api/v1/auth'
+    router=signup.router,
+    prefix='/api/v1/signup'
+)
+app.include_router(
+    router=signin.router,
+    prefix='/api/v1/signin'
 )
 app.include_router(
     router=account.router,

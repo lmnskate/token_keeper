@@ -1,10 +1,9 @@
 from logging.config import fileConfig
 
-from sqlalchemy import engine_from_config, pool
-
 from alembic import context
 from core.config import postgres_settings
 from models.models import Base
+from sqlalchemy import engine_from_config, pool
 
 config = context.config
 

@@ -1,6 +1,19 @@
 version: '3'
 services:
 # Сервис авторизации
+  auth_api:
+    container_name: auth_api
+    build: ./backend/auth_service/src/
+    env_file:
+      - .env
+    ports:
+      - ${AUTH_API_PORT}:${AUTH_API_PORT}
+    depends_on:
+      auth_postgres:
+        condition: service_healthy
+      auth_redis:
+        condition: service_healthy
+
   auth_postgres:
     image: postgres:16-alpine
     container_name: auth_postgres

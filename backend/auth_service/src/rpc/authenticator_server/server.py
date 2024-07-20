@@ -1,7 +1,6 @@
 from concurrent import futures
 
 import grpc
-
 from core.config import postgres_settings
 from crud.user import get_user_id
 from dependencies import postgres

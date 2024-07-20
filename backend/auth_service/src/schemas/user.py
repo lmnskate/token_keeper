@@ -1,5 +1,4 @@
 from pydantic import AliasChoices, Field
-
 from schemas.common import CommonModel
 
 
