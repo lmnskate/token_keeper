@@ -1,10 +1,11 @@
 from datetime import datetime, timedelta
 
-from core.config import jwt_settings
 from fastapi import Depends, HTTPException, status
 from jose import JWTError, jwt
 from jose.constants import ALGORITHMS
 from redis.asyncio.client import Redis
+
+from core.config import jwt_settings
 from services.redis import get_redis_session
 
 

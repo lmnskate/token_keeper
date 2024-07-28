@@ -1,6 +1,7 @@
+from sqlalchemy.ext.asyncio import AsyncSession
+
 from core.config import postgres_settings
 from dependencies.postgres import get_sessionmaker
-from sqlalchemy.ext.asyncio import AsyncSession
 
 
 async def get_postgres_session() -> AsyncSession:

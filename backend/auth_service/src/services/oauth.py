@@ -1,6 +1,7 @@
 import aiohttp
-from core.config import GoogleSettings, YandexSettings
 from fastapi import Depends
+
+from core.config import GoogleSettings, YandexSettings
 from schemas.user import UserOauthModel
 
 

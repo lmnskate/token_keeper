@@ -1,6 +1,7 @@
-from models.models import LogonHistory
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
+
+from models.models import LogonHistory
 
 
 async def get_auth_history(

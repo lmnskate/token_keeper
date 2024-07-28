@@ -54,9 +54,18 @@ class YandexSettings(BaseSettings):
     redirect_uri: str
 
 
+class JaegerSettings(BaseSettings):
+    '''Класс,содержащий настройки подключения к jaeger'''
+
+    model_config = SettingsConfigDict(env_prefix='JAEGER_')
+    host: str
+    http_port: int
+
+
 auth_api_settings = AuthAPISettings()
 postgres_settings = PostgresSettings()
 redis_settings = RedisSettings()
 jwt_settings = JWTSettings()
 google_settings = GoogleSettings()
 yandex_settings = YandexSettings()
+jaeger_settings = JaegerSettings()

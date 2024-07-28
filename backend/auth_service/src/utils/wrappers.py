@@ -1,7 +1,8 @@
 from functools import wraps
 
-from core.globals import COOKIE_PREFIX
 from fastapi import HTTPException, Request, status
+
+from core.globals import COOKIE_PREFIX
 from services.jwt import JWTService
 
 

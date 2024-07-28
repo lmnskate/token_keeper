@@ -2,11 +2,14 @@ import secrets
 from typing import Annotated
 
 import aiohttp
-from crud.common import add_to_db
-from crud.user import check_email, get_user_id
 from fastapi import (APIRouter, Depends, HTTPException, Request, Response,
                      status)
 from fastapi.encoders import jsonable_encoder
+from opentelemetry import trace
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from crud.common import add_to_db
+from crud.user import check_email, get_user_id
 from models.models import LogonHistory, User
 from schemas.service_message import ServiceMessageModel
 from schemas.user import LocalUserCreateModel
@@ -14,10 +17,11 @@ from services.jwt import JWTService, get_jwt_session
 from services.oauth import (get_aiohttp_session, get_google_oauth,
                             get_yandex_oauth)
 from services.postgres import get_postgres_session
-from sqlalchemy.ext.asyncio import AsyncSession
 from utils.tokens import create_tokens, set_tokens_to_cookies
 
 router = APIRouter()
+
+tracer = trace.get_tracer(__name__)
 
 
 @router.post('/local',
@@ -36,46 +40,51 @@ async def create_local_user(
 ) -> ServiceMessageModel:
     user = User(**jsonable_encoder(local_user_create_model))
 
-    if not await check_email(
-        db_session=db_session,
-        email=user.email
-    ):
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail='Account with provided email is already exists!'
+    with tracer.start_as_current_span('Checking if email is already claimed'):
+        if not await check_email(
+            db_session=db_session,
+            email=user.email
+        ):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail='Account with provided email is already exists!'
+            )
+
+    with tracer.start_as_current_span('Creating tokens'):
+        access_token, refresh_token = create_tokens(
+            jwt_session=jwt_session,
+            email=user.email
         )
 
-    access_token, refresh_token = create_tokens(
-        jwt_session=jwt_session,
-        email=user.email
-    )
-
-    set_tokens_to_cookies(
-        response=response,
-        access_token=access_token,
-        refresh_token=refresh_token
-    )
+    with tracer.start_as_current_span('Setting tokens to response headers'):
+        set_tokens_to_cookies(
+            response=response,
+            access_token=access_token,
+            refresh_token=refresh_token
+        )
 
     user.refresh_token = refresh_token
 
-    await add_to_db(
-        db_session=db_session,
-        instance=user
-    )
-
-    auth_history = LogonHistory(
-        ip=request.client.host,
-        user_agent=request.headers.get('User-Agent'),
-        user_id=await get_user_id(
+    with tracer.start_as_current_span('Adding user record to database'):
+        await add_to_db(
             db_session=db_session,
-            email=user.email
+            instance=user
         )
-    )
 
-    await add_to_db(
-        db_session=db_session,
-        instance=auth_history
-    )
+    with tracer.start_as_current_span('Adding logon record to database'):
+        auth_history = LogonHistory(
+            ip=request.client.host,
+            user_agent=request.headers.get('User-Agent'),
+            user_id=await get_user_id(
+                db_session=db_session,
+                email=user.email
+            )
+        )
+
+        await add_to_db(
+            db_session=db_session,
+            instance=auth_history
+        )
 
     return ServiceMessageModel(
         message='Successfully signed up!'
@@ -95,54 +104,57 @@ async def create_oauth_user(
     request: Request,
     service: Annotated[str, ['google', 'yandex']] = None,
     session: aiohttp.ClientSession = Depends(get_aiohttp_session),
-    jwt_service: JWTService = Depends(get_jwt_session),
     db_session: AsyncSession = Depends(get_postgres_session)
 ) -> ServiceMessageModel:
-    if service == 'google':
-        google_oauth = get_google_oauth(
-            session=session
-        )
-        user_oauth_model = await google_oauth.get_user_data(
-            authorization_code=code
-        )
-    elif service == 'yandex':
-        yandex_oauth = get_yandex_oauth(
-            session=session
-        )
-        user_oauth_model = await yandex_oauth.get_user_data(
-            authorization_code=code
-        )
-    else:
-        return ServiceMessageModel(
-            message='Cannot perform authorization with requested service!'
-        )
+    with tracer.start_as_current_span('Getting Oauth authorization code'):
+        if service == 'google':
+            google_oauth = get_google_oauth(
+                session=session
+            )
+            user_oauth_model = await google_oauth.get_user_data(
+                authorization_code=code
+            )
+        elif service == 'yandex':
+            yandex_oauth = get_yandex_oauth(
+                session=session
+            )
+            user_oauth_model = await yandex_oauth.get_user_data(
+                authorization_code=code
+            )
+        else:
+            return ServiceMessageModel(
+                message='Cannot perform authorization with requested service!'
+            )
 
     # проверяем, существует ли пользователь с email, возвращённым сервисом
-    if not await check_email(
-            db_session=db_session,
-            email=user_oauth_model.email
-    ):
-        # really???
-        return ServiceMessageModel(
-            message='Successfully authorized!'
-        )
+    with tracer.start_as_current_span('Checking if user with this email is already exists'):
+        if not await check_email(
+                db_session=db_session,
+                email=user_oauth_model.email
+        ):
+            # really???
+            return ServiceMessageModel(
+                message='Successfully authorized!'
+            )
 
     # регистрируем пользователя
-    password = secrets.token_urlsafe(
-        nbytes=10
-    )
-
-    user = User(
-        password=password,
-        **user_oauth_model.model_dump(
-            exclude=['id']
+    with tracer.start_as_current_span('Creating temporary password'):
+        password = secrets.token_urlsafe(
+            nbytes=10
         )
-    )
 
-    await add_to_db(
-        db_session=db_session,
-        instance=user
-    )
+    with tracer.start_as_current_span('Adding user record to database'):
+        user = User(
+            password=password,
+            **user_oauth_model.model_dump(
+                exclude=['id']
+            )
+        )
+
+        await add_to_db(
+            db_session=db_session,
+            instance=user
+        )
 
     return ServiceMessageModel(
         message=f'Successfully signed up. Your password is {password}, change it immediately.'

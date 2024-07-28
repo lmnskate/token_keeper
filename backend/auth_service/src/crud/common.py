@@ -1,5 +1,6 @@
-from dependencies.postgres import Base
 from sqlalchemy.ext.asyncio import AsyncSession
+
+from dependencies.postgres import Base
 
 
 async def add_to_db(
