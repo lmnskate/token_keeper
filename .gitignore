@@ -1,7 +1,5 @@
 # Environments
 .env
-.env.movies
-.env.auth
 .venv
 env/
 venv/
