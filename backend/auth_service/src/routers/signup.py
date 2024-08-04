@@ -5,7 +5,6 @@ import aiohttp
 from fastapi import (APIRouter, Depends, HTTPException, Request, Response,
                      status)
 from fastapi.encoders import jsonable_encoder
-from opentelemetry import trace
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from crud.common import add_to_db
@@ -17,11 +16,12 @@ from services.jwt import JWTService, get_jwt_session
 from services.oauth import (get_aiohttp_session, get_google_oauth,
                             get_yandex_oauth)
 from services.postgres import get_postgres_session
+from services.tracer import get_tracer_session
 from utils.tokens import create_tokens, set_tokens_to_cookies
 
 router = APIRouter()
 
-tracer = trace.get_tracer(__name__)
+tracer = get_tracer_session()
 
 
 @router.post('/local',

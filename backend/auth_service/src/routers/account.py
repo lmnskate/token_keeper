@@ -1,7 +1,6 @@
 from fastapi import (APIRouter, Depends, HTTPException, Request, Response,
                      status)
 from fastapi.encoders import jsonable_encoder
-from opentelemetry import trace
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.globals import COOKIE_PREFIX
@@ -13,12 +12,13 @@ from schemas.service_message import ServiceMessageModel
 from schemas.user import ChangePasswordModel
 from services.jwt import JWTService, get_jwt_session
 from services.postgres import get_postgres_session
+from services.tracer import get_tracer_session
 from utils.tokens import create_tokens, set_tokens_to_cookies
 from utils.wrappers import if_token_is_valid
 
 router = APIRouter()
 
-tracer = trace.get_tracer(__name__)
+tracer = get_tracer_session()
 
 
 @router.get('/refresh_tokens',

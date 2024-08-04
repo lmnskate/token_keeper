@@ -58,6 +58,7 @@ class JaegerSettings(BaseSettings):
     '''Класс,содержащий настройки подключения к jaeger'''
 
     model_config = SettingsConfigDict(env_prefix='JAEGER_')
+    enable_tracer: bool = True
     host: str
     http_port: int
 

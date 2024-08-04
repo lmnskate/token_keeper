@@ -1,23 +1,21 @@
 import sys
+import uuid
 from contextlib import asynccontextmanager
-from uuid import uuid4
 
 import uvicorn
 from asgi_correlation_id import CorrelationIdMiddleware
-from asgi_correlation_id.middleware import is_valid_uuid4
 from fastapi import FastAPI
 from fastapi.responses import ORJSONResponse
 from fastapi_limiter import FastAPILimiter
 from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
 
-from core.config import auth_api_settings, postgres_settings, redis_settings
-from core.tracer import configure_tracer
+from core.config import (auth_api_settings, jaeger_settings, postgres_settings,
+                         redis_settings)
+from core.tracer import configure_tracer, jaeger_middleware
 from dependencies import postgres, redis
 from routers import account, signin, signup
 from rpc.authenticator_server.server import get_authenticator_server
 from services import oauth
-
-configure_tracer()
 
 
 @asynccontextmanager
@@ -71,15 +69,19 @@ app = FastAPI(
     lifespan=lifespan
 )
 
-FastAPIInstrumentor.instrument_app(app)
+
+if jaeger_settings.enable_tracer:
+    configure_tracer(
+        host=jaeger_settings.host,
+        port=jaeger_settings.http_port
+    )
+
+    app.middleware('http')(jaeger_middleware)
 
 app.add_middleware(
     CorrelationIdMiddleware,
     header_name='X-Request-ID',
-    update_request_header=True,
-    generator=lambda: uuid4().hex,
-    validator=is_valid_uuid4,
-    transformer=lambda a: a,
+    generator=lambda: str(uuid.uuid4()),
 )
 
 app.include_router(
@@ -94,6 +96,8 @@ app.include_router(
     router=account.router,
     prefix='/api/v1/account'
 )
+
+FastAPIInstrumentor.instrument_app(app)
 
 if __name__ == '__main__':
     uvicorn.run(
