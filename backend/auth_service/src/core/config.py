@@ -63,6 +63,14 @@ class JaegerSettings(BaseSettings):
     http_port: int
 
 
+class LogstashSettings(BaseSettings):
+    """Класс, содержащий настройки для подключения к Logstash"""
+
+    model_config = SettingsConfigDict(env_prefix="LOGSTASH_")
+    host: str
+    port: int
+
+
 auth_api_settings = AuthAPISettings()
 postgres_settings = PostgresSettings()
 redis_settings = RedisSettings()
@@ -70,3 +78,4 @@ jwt_settings = JWTSettings()
 google_settings = GoogleSettings()
 yandex_settings = YandexSettings()
 jaeger_settings = JaegerSettings()
+logstash_settings = LogstashSettings()

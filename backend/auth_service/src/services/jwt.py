@@ -65,7 +65,7 @@ class BasicJWTService:
             *args,
             **kwargs,
             expires_delta=timedelta(
-                days=self.settings.access_lifetime
+                minutes=self.settings.access_lifetime
             ),
         )
 

@@ -1,4 +1,10 @@
 # Сервис хранения токенов
+
+## Важные эндпоинты
+Схема API авторизации - http://127.0.0.1/api/openapi
+Панель трейсинга - http://127.0.0.1:16686
+Панель логирования - http://127.0.0.1:5601
+
 ## Переменные окружения
 ### Сервис авторизации
 | Переменная                    | Описание                                     | Пример                                  |
@@ -23,9 +29,15 @@
 | `GOOGLE_REDIRECT_URI`         | Redirect URL при авторизации через Google    | `http://127.0.0.1/api/v1/signup/google` |
 
 ### Система логирования и трейсинга
-| Переменная             | Описание                | Пример           |
-|------------------------|-------------------------|------------------|
-| `JAEGER_HOST`          | Хост трейсера           | `logging_jaeger` |
-| `JAEGER_ENABLE_TRACER` | Включить трейсинг       | `True`           |
-| `JAEGER_HTTP_PORT`     | Служебный порт трейсера | `6831`           |
-| `JAEGER_UI_PORT`       | UI-порт трейсера        | `16686`          |
+| Переменная             | Описание                | Пример          |
+|------------------------|-------------------------|-----------------|
+| `JAEGER_HOST`          | Хост трейсера           | `jaeger`        |
+| `JAEGER_ENABLE_TRACER` | Включить трейсинг       | `True`          |
+| `JAEGER_HTTP_PORT`     | Служебный порт трейсера | `6831`          |
+| `JAEGER_UI_PORT`       | UI-порт трейсера        | `16686`         |
+| `ELASTICSEARCH_HOST`   | Хост Elasticsearch      | `elasticsearch` |
+| `ELASTICSEARCH_PORT`   | Порт Elasticsearch      | `9200`          |
+| `LOGSTASH_HOST`        | Хост Logstash           | `logstash`      |
+| `LOGSTASH_PORT`        | Порт Logstash           | `5044`          |
+| `KIBANA_HOST`          | Хост Kibana             | `kibana`        |
+| `KIBANA_PORT`          | Порт Kibana             | `5601`          |

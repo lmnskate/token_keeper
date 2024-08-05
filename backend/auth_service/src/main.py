@@ -9,8 +9,9 @@ from fastapi.responses import ORJSONResponse
 from fastapi_limiter import FastAPILimiter
 from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
 
-from core.config import (auth_api_settings, jaeger_settings, postgres_settings,
-                         redis_settings)
+from core.config import (auth_api_settings, jaeger_settings, logstash_settings,
+                         postgres_settings, redis_settings)
+from core.logger import init_uvicorn_logger
 from core.tracer import configure_tracer, jaeger_middleware
 from dependencies import postgres, redis
 from routers import account, signin, signup
@@ -44,6 +45,11 @@ async def lifespan(
 
     await FastAPILimiter.init(redis_session)
 
+    init_uvicorn_logger(
+        host=logstash_settings.host,
+        port=logstash_settings.port
+    )
+
     yield
 
     await redis_session.close()
@@ -63,8 +69,8 @@ app = FastAPI(
     title='API cервиса авторизации',
     description='API для авторизации пользователей',
     version='1.0.0',
-    docs_url='/api/openapi',
-    openapi_url='/api/openapi.json',
+    docs_url='/auth/api/openapi',
+    openapi_url='/auth/api/openapi.json',
     default_response_class=ORJSONResponse,
     lifespan=lifespan
 )
